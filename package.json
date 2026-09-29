@@ -1,0 +1,15 @@
+{
+  "name": "ufret-to-chordwiki",
+  "version": "1.0.0",
+  "description": "U-FRET の曲URLを入力すると ChordWiki のレイアウトで表示・ChordWiki形式テキストに変換するサイト",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title>テストの歌 &amp; その2 / テスト楽団  ギターコード/ウクレレコード/ピアノコード - U-FRET(U-フレット)</title>
+<script>
+  // 本物のページ同様、JS 内にも name="key_scrollbar" が出てくる
+  var song_key = $('input[name="key_scrollbar"]').val();
+</script>
+</head>
+<body>
+<section class="p-detail-head ">
+    <div class="l-wrapper">
+        <h1 class="p-detail-head__ttl">
+            テストの歌 &amp; その2                                </h1>
+        <div class="c-flex --justifyBetween --alignCenter">
+            <div class="p-detail-head__info">
+                <a class="p-detail-head__artist" href="/artist.php?data=test">テスト楽団</a>
+                <p class="p-detail-head__lyrics">作詞 : <span>作詞者A</span>/作曲 : <span>作曲者B</span></p>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="scrollbar-container">
+    <input
+        type="range"
+        name="key_scrollbar"
+        value="-3"
+        min="-9" max="2"
+        class="scrollbar"
+        style="direction: rtl;"
+        data-kantan_key="-3"
+        data-my_key=""
+    />
+</div>
+<script>
+    var ufret_musical_sheet;
+        var ufret_chord_datas = ["[A\u266dmaj7]\u3000[G7]\u3000[Cm7]\u3000[E\u266d7]\r","\r","\ufeff[E\u266d]\u3089\u3089[E\u266d7]\u308b\u308b\"\u5f15\u7528\"[A\u266dmaj7]\u308a\u308a];[G7]\u308c\u308c \r","\r","\r","\u6b4c\u8a5e\u3060\u3051\u306e\u884c\r","[N.C.]\u304a\u308f\u308a[C#m7-5]"];
+        var active_musical_sheet;
+</script>
+</body>
+</html>

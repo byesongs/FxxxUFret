@@ -1,0 +1,88 @@
+/* ===== ChordWiki レイアウト =====
+   本家 ChordWiki(ja.chordwiki.org/style.css)の見た目を再現する。変換サイトとブックマークレットで共用。
+   コードは本家と同じく歌詞の流れの中に置いて上へ持ち上げる方式。崩れ防止のため以下を補強:
+   - 行の高さを「コード1段 + 歌詞1段」ぶん確保 → 折り返した2段目のコードが上の歌詞に重ならない
+   - コードは inline-block + 最小幅 → コードの下へ寄せた歌詞が前の歌詞に食い込まない
+   - span.cw-u(コード+直後の1文字)は改行しない → コードだけ行末に取り残されない
+   - 長い単語も折り返す(overflow-wrap:anywhere) → 枠からはみ出さない */
+.cw-sheet {
+  background: #fff;
+  color: #000;
+  border: 1px solid var(--cw-border, #d7dbe0);
+  border-radius: 10px;
+  font-family: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  text-align: left;
+  overflow: hidden;
+}
+.cw-sheet .main {
+  line-height: 1.5em;
+  padding: 4px 32px 28px 48px;
+}
+.cw-sheet h1.title {
+  font-size: 18px;
+  text-align: center;
+  padding-top: 12px;
+  margin: 0 0 .5em;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+.cw-sheet h2.subtitle {
+  font-size: 12px;
+  text-align: center;
+  font-weight: bold;
+  margin: 0 0 1.5em;
+  overflow-wrap: anywhere;
+}
+.cw-sheet .lines { padding-top: .6em; }
+.cw-sheet p.key {
+  font-size: 12px;
+  font-weight: bold;
+  color: crimson;
+  margin: .4em 0 1.2em;
+}
+.cw-sheet p.line {
+  margin: 0;
+  line-height: 2.7em;
+  overflow-wrap: anywhere;
+  /* 折り返した2段目以降は、.5em 左へ寄る歌詞の頭が1段目の行頭と揃うよう .5em 下げる */
+  padding-left: .5em;
+  text-indent: -.5em;
+}
+.cw-sheet p.line.comment {
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: .5em 0 .8em;
+  padding-left: 0;
+  text-indent: 0;
+}
+.cw-sheet span.chord {
+  text-indent: 0;
+  display: inline-block;
+  position: relative;
+  top: -1.7em;
+  min-width: .75em;
+  font-size: smaller;
+  font-family: sans-serif;
+  line-height: 1.15;
+  color: blue;
+  text-decoration: none;
+  white-space: nowrap;
+}
+/* 本家と同じく歌詞を .5em 左へ寄せてコードの下に入れる。コード自体は文の流れの中にあるので
+   コード同士は重ならない */
+.cw-sheet span.word { position: relative; left: -.5em; }
+.cw-sheet span.wordtop { position: relative; }
+.cw-sheet span.cw-u { white-space: nowrap; }
+
+@media (max-width: 639px) {
+  /* 本家のスマホ表示と同じく文字を少し小さくする */
+  .cw-sheet { font-size: 14px; }
+  .cw-sheet .main { padding: 2px 12px 20px 14px; }
+}
+
+@media print {
+  .cw-sheet { border: 0; }
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ufret2chordwiki",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000
+    },
+    {
+      "name": "dist-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-dist.mjs"],
+      "port": 3001
+    }
+  ]
+}

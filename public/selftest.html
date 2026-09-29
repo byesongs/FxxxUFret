@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>レイアウト自己テスト - U-FRET → ChordWiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap">
+  <link rel="stylesheet" href="chordwiki.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .summary { padding: 10px 0; }
+    .summary table { border-collapse: collapse; font-size: .82rem; width: 100%; background: var(--panel); }
+    .summary th, .summary td { border: 1px solid var(--border); padding: 3px 6px; text-align: left; }
+    .pass { color: var(--ok); font-weight: bold; }
+    .fail { color: var(--error); font-weight: bold; }
+    .case { margin: 18px 0; }
+    .case h2 { font-size: .95rem; margin: 0 0 6px; }
+    .case .issues { font-size: .8rem; color: var(--error); margin: 4px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="summary">
+      <strong id="overall">テスト実行中…</strong>
+      <span id="viewport"></span>
+      <table><thead><tr><th>ケース</th><th>結果</th><th>行</th><th>コード</th><th>問題</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+    <div id="cases"></div>
+  </div>
+  <script type="module">
+    import { renderChordWiki, toChordWikiSource, capoLabel } from './chordwiki.js';
+    import { checkLayout } from './layout-check.js';
+
+    // 実在の歌詞は使わず、崩れやすい要素を意図的に詰め込んだ合成データ
+    const CASES = [
+      ['基本(歌詞の途中にコード)', `{title:基本のテスト}\n{subtitle:歌：テスト　作詞・作曲：テスト}\n[C]あさの ひかりが[G]まどを てらして\n[Am]きょうも また[Em]あたらしい いちにち[F]が\nはじ[G]まる[C]\n\n[F]ならんで[G]あるく [Em]みちの[Am]うえ\n[Dm7]すこしだけ[G7]はやあしで[C]`],
+      ['1文字ごとに長いコード', `[C#m7-5/G#]あ[Abmaj7]い[F#7sus4]う[Bbm7(b5)]え[Gadd9/B]お[Ebdim7]か[C7(#9)]き[Dbmaj7/F]く[E7sus4]け[Aaug]こ[Bm7/E]さ[G#m7-5]し[F#m/C#]す[Cmaj7(9)]せ[D/F#]そ`],
+      ['コードだけの行(全角スペース区切り・U-FRET前奏)', `[D]　[Dmaj7]　[D7]　[B7]\n[Em]　[EmM7]　[Em/D]　[A7]　[Bm]　[A7/C#]\n[Ab]　[G7]　[Cm7]　[Eb7]　[Abmaj7]　[G7]　[Cm7]　[Eb7]　[Abmaj7]　[G7]　[Cm7]　[Eb7]`],
+      ['コードだけの長い行(区切りなし)', `[C][G][Am][Em][F][C][F][G][C][G][Am][Em][F][C][F][G][C][G][Am][Em][F][C][F][G][Cmaj7][G/B][Am7][Em7/G][Fmaj7][C/E][Dm7][G7sus4]`],
+      ['折り返す長い歌詞', `[Am]ながいながい[F]うたの[G]ことばが[C]どこまでも[Am]つづいて[F]いくので[G]このぎょうは[C]ちいさな[Dm]がめんでは[E7]なんども[Am]おりかえされる[F]はずです[G]そして[C]おわりまで[E7]つづく[Am]`],
+      ['歌詞のみ・行頭の歌詞・行末のコード', `コードのない ぎょうです\nはじめは[C]かしから\nおわりに コード[G7]\n[Am]\n　　[F]ぜんかくスペースから[G]`],
+      ['英語・長い単語・半角スペース', `[G]Hello [D]my friend, [Em]how are [C]you today\n[C]Supercalifragilisticexpialidociousandevenlongerwordwithoutanyspaces[G]end\n[Am7] Yeah [D7sus4] yeah [G]`],
+      ['エスケープ・特殊文字', `{title:<b>タイトル</b> & "引用" 'x'}\n{subtitle:歌：A&B　作詞：<i>x</i>}\n[C]<script>alert(1)<\/script>[G]&amp; ＜＞\n[Am]カ゛ギ（結合文字）[F]👍🏻絵文字[G]👨‍👩‍👧家族`],
+      ['コメント・キー・空行', `{title:コメントのテスト}\n{key:Eb}\n{c:Intro}\n[Eb]　[Bb]　[Cm]　[Ab]\n\n\n{ci:A メロ}\n[Eb]ここは[Bb]A メロ\n{c:※くりかえし}\n[Ab]さいごの[Bb]ぎょう[Eb]`],
+      ['特殊なコード表記', `[N.C.]はじめ[(C)]かっこ[ConE]オン[C/E]スラッシュ[B♭m7]フラット記号[F♯m]シャープ記号[Ｃ]全角`],
+      ['行頭のコード+半角スペース', `[C] あ[G] い[Am] う[F] え\n[C]  [G]  [Am]`],
+    ];
+
+    // U-FRET 取得データ相当(カポ・移調の変換経路も通す)
+    const FAKE_SONG = {
+      title: 'カポのテスト', artist: 'テスト', lyricist: 'X', composer: 'Y',
+      lines: ['[A♭maj7]　[G7]　[Cm7]　[E♭7]', '', '[E♭]らら[E♭7]るる[A♭maj7]りり[G7]れれ[Cm7]ろ', '[Gm]あい[A♭maj7]うえ[B♭]おか[E♭maj7]きく　けこ[G]さ'],
+    };
+    CASES.push(['U-FRETデータ→Capo 3', toChordWikiSource(FAKE_SONG, { capo: -3 })]);
+    CASES.push(['U-FRETデータ→1音下げ+移調-5', toChordWikiSource(FAKE_SONG, { capo: 2, key: -5 })]);
+
+    const params = new URLSearchParams(location.search);
+    const ids = (params.get('ids') || '').split(',').map((s) => s.trim()).filter(Boolean);
+    const results = [];
+    const casesEl = document.getElementById('cases');
+    const rowsEl = document.getElementById('rows');
+
+    function addCase(name, src) {
+      const sec = document.createElement('section');
+      sec.className = 'case';
+      sec.innerHTML = `<h2></h2><article class="cw-sheet"><div class="main"></div></article><p class="issues"></p>`;
+      sec.querySelector('h2').textContent = name;
+      sec.querySelector('.main').innerHTML = renderChordWiki(src);
+      casesEl.append(sec);
+      return sec;
+    }
+
+    const sections = CASES.map(([name, src]) => [name, addCase(name, src)]);
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/song?url=${encodeURIComponent(id)}`);
+        const song = await res.json();
+        if (!res.ok) throw new Error(song.error);
+        for (const capo of [...new Set([0, song.recommendedCapo || 0])]) {
+          const label = `U-FRET ${id} (${song.format}) ${capoLabel(capo)}`;
+          sections.push([label, addCase(label, toChordWikiSource(song, { capo }))]);
+        }
+      } catch (e) {
+        results.push({ name: `U-FRET ${id}`, ok: false, lines: 0, chords: 0, issues: [{ type: 'fetch', msg: e.message }] });
+      }
+    }
+
+    await document.fonts.ready;
+    // レイアウトは getBoundingClientRect 時に確定するので rAF は待たない(非表示タブでは rAF が止まるため)
+    await new Promise((r) => setTimeout(r, 50));
+
+    for (const [name, sec] of sections) {
+      const r = checkLayout(sec.querySelector('.main'));
+      results.push({ name, ...r });
+      sec.querySelector('.issues').textContent = r.issues.slice(0, 5).map((i) => `[${i.type}] ${i.msg}`).join(' / ');
+    }
+    for (const r of results) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td></td><td class="${r.ok ? 'pass' : 'fail'}">${r.ok ? 'PASS' : 'FAIL'}</td><td>${r.lines}</td><td>${r.chords}</td><td></td>`;
+      tr.cells[0].textContent = r.name;
+      tr.cells[4].textContent = r.issues.length ? `${r.issues.length}件: ${[...new Set(r.issues.map((i) => i.type))].join(', ')}` : '-';
+      rowsEl.append(tr);
+    }
+    const failed = results.filter((r) => !r.ok).length;
+    const overall = document.getElementById('overall');
+    overall.textContent = failed ? `FAIL: ${failed}/${results.length} ケースで崩れを検出` : `PASS: 全${results.length}ケースで崩れなし`;
+    overall.className = failed ? 'fail' : 'pass';
+    document.getElementById('viewport').textContent = `（表示幅 ${window.innerWidth}px）`;
+    window.__selftest = { ok: failed === 0, width: window.innerWidth, results };
+  </script>
+</body>
+</html>

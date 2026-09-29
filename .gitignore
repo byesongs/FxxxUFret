@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# 個人の環境用(絶対パスを含む)
+.mcp.json
+.mcp-memory.jsonl
