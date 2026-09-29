@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>U-FRET → ChordWiki 変換</title>
-  <meta name="description" content="U-FRETの曲ページのURLを入力すると、ChordWikiのレイアウトで表示し、ChordWiki形式のテキストに変換します。">
+  <meta name="description" content="U-FRETの曲ページのURLを入力すると、ChordWikiのレイアウトで表示します。">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap">
@@ -16,7 +16,7 @@
   <header class="site-header">
     <div class="wrap">
       <h1 class="site-title">U-FRET <span>→</span> ChordWiki 変換</h1>
-      <p class="site-lead">U-FRETの曲ページのURLを貼り付けると、ChordWikiのレイアウトで表示し、ChordWiki形式のテキストも作ります。</p>
+      <p class="site-lead">U-FRETの曲ページのURLを貼り付けると、ChordWikiのレイアウトで表示します。</p>
       <form id="form" class="url-form" autocomplete="off">
         <input id="url" name="url" type="text" inputmode="url" aria-label="U-FRETの曲ページのURL"
                placeholder="https://www.ufret.jp/song.php?data=1234" required>
@@ -31,7 +31,6 @@
       <label>カポ <select id="capo" aria-label="カポ"></select></label>
       <label>移調 <select id="key" aria-label="移調"></select></label>
       <span class="spacer"></span>
-      <button id="copy" type="button">ChordWiki形式をコピー</button>
       <button id="print" type="button" class="secondary">印刷</button>
       <a id="source-link" href="#" target="_blank" rel="noopener noreferrer">U-FRETの元ページ</a>
     </div>
@@ -40,11 +39,6 @@
       <div id="cw-main" class="main"></div>
     </article>
 
-    <details id="source-panel" class="source-panel">
-      <summary>ChordWiki形式のテキスト（編集するとプレビューに反映されます）</summary>
-      <textarea id="source" spellcheck="false" aria-label="ChordWiki形式のテキスト"></textarea>
-      <p class="hint">ChordWiki の編集画面にそのまま貼り付けられる形式です。カポ・移調を変えると作り直されます。</p>
-    </details>
   </main>
 
   <footer class="site-footer">

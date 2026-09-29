@@ -43,6 +43,14 @@ test('ユーザースクリプト: ヘッダーと自動更新URL、曲ページ
   assert.deepEqual(runIn(us), []);
 });
 
+test('配布物は表示専用: 譜面のテキスト書き出し・編集の機能を含まない', () => {
+  for (const code of [decodeURIComponent(read('bookmarklet.txt').slice('javascript:'.length)), read('ufret2cw.user.js')]) {
+    assert.doesNotMatch(code, /clipboard|execCommand|textarea|contenteditable/i);
+    assert.doesNotMatch(code, /ChordWiki形式/);
+  }
+  assert.doesNotMatch(read('index.html'), /ChordWiki形式/);
+});
+
 test('配布ページ: 置き換え漏れがなく、ブックマークレットとデモが入っている', () => {
   const page = read('index.html');
   assert.doesNotMatch(page, /%%[A-Z_]+%%/);

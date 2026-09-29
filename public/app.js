@@ -10,14 +10,12 @@ const els = {
   result: $('result'),
   capo: $('capo'),
   key: $('key'),
-  copy: $('copy'),
   print: $('print'),
   link: $('source-link'),
   main: $('cw-main'),
-  source: $('source'),
 };
 
-const state = { song: null, edited: false };
+const state = { song: null };
 
 // 検証用(ブラウザのコンソールから window.cwLayoutCheck() で崩れの有無を確認できる)
 window.cwLayoutCheck = () => checkLayout(els.main);
@@ -41,18 +39,11 @@ function fillOptions(recommended) {
   els.key.value = '0';
 }
 
+// 表示専用: ChordWiki 形式は内部の中間表現としてだけ使い、テキストの編集・書き出しはしない
 function render() {
-  els.main.innerHTML = renderChordWiki(els.source.value);
-}
-
-function regenerate() {
   if (!state.song) return;
-  els.source.value = toChordWikiSource(state.song, {
-    capo: Number(els.capo.value),
-    key: Number(els.key.value),
-  });
-  state.edited = false;
-  render();
+  const src = toChordWikiSource(state.song, { capo: Number(els.capo.value), key: Number(els.key.value) });
+  els.main.innerHTML = renderChordWiki(src);
 }
 
 async function convert(input) {
@@ -67,7 +58,7 @@ async function convert(input) {
     state.song = data;
     fillOptions(Number(data.recommendedCapo) || 0);
     els.link.href = data.url;
-    regenerate();
+    render();
     els.result.hidden = false;
     document.title = `${data.title || '無題'} - U-FRET → ChordWiki`;
     const note = data.format === 'video' ? '（動画プラス形式のため段落区切りはありません）' : '';
@@ -86,33 +77,8 @@ els.form.addEventListener('submit', (e) => {
   convert(els.url.value);
 });
 
-for (const sel of [els.capo, els.key]) {
-  sel.addEventListener('change', () => {
-    if (state.edited && !confirm('テキストの編集内容は破棄され、カポ・移調を反映したテキストに作り直されます。よろしいですか？')) {
-      return;
-    }
-    regenerate();
-  });
-}
-
-els.source.addEventListener('input', () => {
-  state.edited = true;
-  render();
-});
-
-els.copy.addEventListener('click', async () => {
-  const text = els.source.value;
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    els.source.closest('details').open = true;
-    els.source.select();
-    document.execCommand('copy');
-  }
-  const label = els.copy.textContent;
-  els.copy.textContent = 'コピーしました';
-  setTimeout(() => (els.copy.textContent = label), 1500);
-});
+els.capo.addEventListener('change', render);
+els.key.addEventListener('change', render);
 
 els.print.addEventListener('click', () => window.print());
 

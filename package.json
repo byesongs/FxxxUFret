@@ -1,7 +1,7 @@
 {
   "name": "ufret-to-chordwiki",
-  "version": "1.0.0",
-  "description": "U-FRET の曲URLを入力すると ChordWiki のレイアウトで表示・ChordWiki形式テキストに変換するサイト",
+  "version": "1.1.0",
+  "description": "U-FRET の曲ページを ChordWiki のレイアウトで表示するブックマークレット / ユーザースクリプト",
   "type": "module",
   "private": true,
   "scripts": {

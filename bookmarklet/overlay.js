@@ -46,13 +46,6 @@ button.close {
 .inner { max-width: 980px; margin: 0 auto; padding: 12px 12px 48px; }
 .msg { padding: 32px 12px; text-align: center; color: #5f6873; }
 .msg.error { color: #c62828; }
-.src { margin: 14px 0 0; background: #fff; border: 1px solid #d7dbe0; border-radius: 10px; padding: 8px 12px; }
-.src summary { cursor: pointer; }
-.src textarea {
-  display: block; width: 100%; min-height: 280px; margin-top: 8px; padding: 8px;
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 13px; line-height: 1.5;
-  border: 1px solid #d7dbe0; border-radius: 8px; background: #f7f8fa; color: #1f2328; resize: vertical;
-}
 .note { margin: 10px 2px 0; font-size: 12px; color: #5f6873; }
 @media (max-width: 639px) {
   .bar { padding: 6px 48px 6px 8px; gap: 6px 8px; }
@@ -63,7 +56,7 @@ button.close {
 @media print {
   :host { position: static; }
   .ov { position: static; display: block; background: #fff; }
-  .bar, .src, .note { display: none !important; }
+  .bar, .note { display: none !important; }
   .scroller { overflow: visible; }
   .inner { max-width: none; padding: 0; }
 }
@@ -130,7 +123,6 @@ export async function openOverlay() {
 
   const capoSel = el('select', { 'aria-label': 'カポ' });
   const keySel = el('select', { 'aria-label': '移調' });
-  const copyBtn = el('button', { type: 'button', text: 'ChordWiki形式をコピー' });
   const printBtn = el('button', { type: 'button', class: 'sub', text: '印刷' });
   const closeBtn = el('button', { type: 'button', class: 'close', 'aria-label': '閉じる', title: '閉じる (Esc)', text: '×' });
   const bar = el(
@@ -139,19 +131,11 @@ export async function openOverlay() {
     el('span', { class: 'brand', text: 'ChordWiki表示' }),
     el('label', {}, 'カポ', capoSel),
     el('label', {}, '移調', keySel),
-    copyBtn,
     printBtn,
     closeBtn,
   );
   const main = el('div', { class: 'main' });
   const sheet = el('article', { class: 'cw-sheet', 'aria-label': 'ChordWikiレイアウトのコード譜' }, main);
-  const source = el('textarea', { spellcheck: 'false', 'aria-label': 'ChordWiki形式のテキスト' });
-  const details = el(
-    'details',
-    { class: 'src' },
-    el('summary', { text: 'ChordWiki形式のテキスト（編集するとプレビューに反映）' }),
-    source,
-  );
   const msg = el('div', { class: 'msg', text: '読み込み中…' });
   const note = el('p', {
     class: 'note',
@@ -205,41 +189,17 @@ export async function openOverlay() {
   for (let k = 6; k >= -6; k--) keys.push(k);
   buildOptions(keySel, keys, (k) => (k === 0 ? '原曲キー' : `${k > 0 ? '+' : ''}${k}`), 0);
 
-  let edited = false;
+  // 表示専用: ChordWiki 形式は内部の中間表現としてだけ使い、テキストの編集・書き出しはしない
   const render = () => {
-    main.innerHTML = renderChordWiki(source.value);
+    const src = toChordWikiSource(song, { capo: Number(capoSel.value), key: Number(keySel.value) });
+    main.innerHTML = renderChordWiki(src);
   };
-  const regenerate = () => {
-    source.value = toChordWikiSource(song, { capo: Number(capoSel.value), key: Number(keySel.value) });
-    edited = false;
-    render();
-  };
-  for (const sel of [capoSel, keySel]) {
-    sel.addEventListener('change', () => {
-      if (edited && !confirm('テキストの編集内容は破棄され、カポ・移調を反映したテキストに作り直されます。よろしいですか？')) return;
-      regenerate();
-    });
-  }
-  source.addEventListener('input', () => {
-    edited = true;
-    render();
-  });
-  copyBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(source.value);
-    } catch {
-      details.open = true;
-      source.focus();
-      source.select();
-      document.execCommand('copy');
-    }
-    copyBtn.textContent = 'コピーしました';
-    setTimeout(() => (copyBtn.textContent = 'ChordWiki形式をコピー'), 1500);
-  });
+  capoSel.addEventListener('change', render);
+  keySel.addEventListener('change', render);
   printBtn.addEventListener('click', () => window.print());
 
-  regenerate();
-  inner.replaceChildren(sheet, details, note);
+  render();
+  inner.replaceChildren(sheet, note);
   scroller.scrollTop = 0;
   return host;
 }
